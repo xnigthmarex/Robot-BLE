@@ -14,7 +14,8 @@ int right_speed = 192;
 std::vector<int> arrayList;
 int command_index = 0;
 void rotate(int target_angle, float angle, float angular_velocity);
-
+void travel(float angle, float angular_velocity, int target_count, int right_count);
+int target_angle = 0;
 void setup()
 {
   Serial.begin(115200);
@@ -40,12 +41,13 @@ void loop1()
   if (dataAvailable())
   {
     String data = readData();
-    data.trim(); //IMP
+    data.trim(); // IMP
     Serial.println(data);
-    if (data.equals("stop"))
+    if (data.equals("s"))
     {
       send_data("DONEDANADONE");
       set_switch_state(false);
+      blue_led_off();
       arrayList.clear();
       command_index = 0;
       stop();
@@ -56,15 +58,25 @@ void loop1()
       blue_led_on();
       set_switch_state(true);
     }
-    else if (data.equals("del")){
-      if (!arrayList.empty()) {
+    else if (data.equals("del"))
+    {
+      if (!arrayList.empty())
+      {
         arrayList.pop_back();
       }
     }
     else
     {
-      int num = data.toInt();
-      arrayList.push_back(num);
+      int int_data = data.toInt();
+      if (int_data % 90 == 0)
+      {
+
+        arrayList.push_back(int_data);
+      }
+      else
+      {
+        arrayList.push_back(get_target_count(int_data));
+      }
     }
     send_data(arrayList);
   }
@@ -79,16 +91,27 @@ void loop()
       float angle = get_angle(true);
       float angular_velocity = get_angular_velocity();
 
-      if(command_index > (arrayList.size() - 1)){
+      if (command_index > (arrayList.size() - 1))
+      {
         stop();
 
         return;
       }
-      else{
-        if(arrayList[command_index] == 0){
+      else
+      {
+        
+        if (target_angle == 0 || arrayList[command_index] == 0)
+        {
           angle = get_angle(false);
         }
-        rotate(arrayList[command_index], angle, angular_velocity);
+        if (arrayList[command_index] % 90 == 0)
+        {
+          target_angle = arrayList[command_index];
+          rotate(arrayList[command_index], angle, angular_velocity);
+        }
+        else{
+            travel(angle, angular_velocity, arrayList[command_index], get_rightcount());
+        }
       }
     }
   }
@@ -104,9 +127,10 @@ void rotate(int target_angle, float angle, float angular_velocity)
   {
     stop();
     command_index++;
+    reset_encoder();
     left_speed = 191;
     right_speed = 192;
-    delay(1000);
+    delay(500);
     return;
   }
   else
@@ -146,4 +170,57 @@ void rotate(int target_angle, float angle, float angular_velocity)
   right_speed = left_speed;
   enA_speed(left_speed);
   enB_speed(right_speed);
+}
+
+void travel(float angle, float angular_velocity, int target_count, int right_count)
+{
+  straight();
+
+  if (target_count <= right_count)
+  {
+    stop();
+    command_index++;
+    reset_encoder();
+    left_speed = 191;
+    right_speed = 192;
+    delay(500);
+    return;
+  }
+  else
+  {
+    int delta_angle = round(target_angle - angle);
+    int target_angular_velocity;
+
+    if (delta_angle > 30)
+    {
+      target_angular_velocity = 60;
+    }
+    else if (delta_angle < -30)
+    {
+      target_angular_velocity = -60;
+    }
+    else
+    {
+      target_angular_velocity = 2 * delta_angle;
+    }
+    angular_velocity = -1 * angular_velocity; // gyro data and accelerometer data are opposite
+    if (round(target_angular_velocity - angular_velocity) == 0)
+    {
+      ;
+    }
+    else if (target_angular_velocity > angular_velocity)
+    {
+      left_speed++;
+    }
+    else
+    {
+      left_speed--;
+    }
+
+    left_speed = constrain(left_speed, 0, 203);
+    right_speed = 192;
+    enA_speed(left_speed);
+    enB_speed(right_speed);
+    delay(10);
+  }
 }

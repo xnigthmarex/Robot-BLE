@@ -39,3 +39,13 @@ int get_rightcount()
   return rightcount;
 }
 
+int get_target_count(int distance)
+{
+  return ((float)distance / wheel_circumference) * encoder_resolution;
+}
+
+void reset_encoder()
+{
+  leftcount = 0;
+  rightcount = 0;
+}
