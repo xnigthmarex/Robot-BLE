@@ -1,11 +1,11 @@
 #include <Arduino.h>
 
-const int enA = 11; // right
-const int in1 = 10;
-const int in2 = 9;
-const int enB = 6; // left
-const int in4 = 7;
-const int in3 = 8;
+const int enA = 6; // right
+const int in1 = 7;
+const int in2 = 8;
+const int enB = 11; // left
+const int in4 = 10;
+const int in3 = 9;
 
 
 

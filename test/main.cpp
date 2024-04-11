@@ -15,7 +15,7 @@ std::vector<int> arrayList;
 int command_index = 0;
 void rotate(int target_angle, float angle, float angular_velocity);
 void travel(float angle, float angular_velocity, int target_count, int right_count);
-void travel_with_ultrasonic(float angle, float angular_velocity, int target);
+void travel_with_ultrasonic(float angle, float angular_velocity, int target)
 int target_angle = 0;
 void setup()
 {
@@ -170,7 +170,6 @@ void rotate(int target_angle, float angle, float angular_velocity)
   right_speed = left_speed;
   enA_speed(left_speed-60);
   enB_speed(right_speed-60);
-  delay(10);
 }
 
 void travel(float angle, float angular_velocity, int target_count, int right_count)

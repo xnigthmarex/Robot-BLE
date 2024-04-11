@@ -22,9 +22,9 @@ void rightcount_increment()
 
 void encoder_setup()
 {
-  pinMode(encoderleft, INPUT_PULLUP);
+//pinMode(encoderleft, INPUT_PULLUP);
   pinMode(encoderright, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(encoderleft), leftcount_increment, RISING);
+//attachInterrupt(digitalPinToInterrupt(encoderleft), leftcount_increment, RISING);
   attachInterrupt(digitalPinToInterrupt(encoderright), rightcount_increment, RISING);
 }
 
