@@ -14,7 +14,8 @@ int right_speed = 192;
 std::vector<int> arrayList;
 int command_index = 0;
 unsigned long start_time;
-const unsigned long target_time = 55 * 1000;
+const unsigned long target_time = 10 * 1000;
+bool volatile state_back_and_forth = false;
 void rotate(int target_angle, float angle, float angular_velocity);
 void travel(float angle, float angular_velocity, int target_count, int right_count);
 void travel_with_ultrasonic(float angle, float angular_velocity, int target_distance, int current_distance);
@@ -105,6 +106,28 @@ void loop()
         stop();
         unsigned long stop_time = millis();
         send_data(String(stop_time - start_time));
+        if((state_back_and_forth == false) && (stop_time - start_time > target_time)){
+            send_data("TIMEOUT");
+            set_switch_state(false);
+        }else{
+          if(state_back_and_forth){
+            backward();
+            enA_speed(80);
+            enB_speed(80);
+            delay(100);
+            stop();
+            delay(700);
+            state_back_and_forth = false;
+          }else{
+            straight();
+            enA_speed(80);
+            enB_speed(80);
+            delay(100);
+            stop();
+            delay(700);
+            state_back_and_forth = true;
+          }
+        }
         return;
       }
       else

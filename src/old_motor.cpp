@@ -42,7 +42,13 @@ void straight()
   digitalWrite(in4, HIGH);
 }
 
+void backward(){
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
 
+}
 
 void enA_speed(int speed){
   analogWrite(enA, speed);

@@ -5,6 +5,7 @@ void old_motor_setup();
 void right();
 void left();
 void straight();
+void backward();
 void stop();
 void enA_speed(int speed);
 void enB_speed(int speed);
