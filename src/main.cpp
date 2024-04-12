@@ -13,10 +13,14 @@ int left_speed = 191;
 int right_speed = 192;
 std::vector<int> arrayList;
 int command_index = 0;
+unsigned long start_time;
+const unsigned long target_time = 55 * 1000;
 void rotate(int target_angle, float angle, float angular_velocity);
 void travel(float angle, float angular_velocity, int target_count, int right_count);
-void travel_with_ultrasonic(float angle, float angular_velocity, int target);
+void travel_with_ultrasonic(float angle, float angular_velocity, int target_distance, int current_distance);
 int target_angle = 0;
+const int PRE_STOP_DIS = 26;//12cm + 9cm
+
 void setup()
 {
   Serial.begin(115200);
@@ -57,6 +61,7 @@ void loop1()
     {
       command_index = 0;
       blue_led_on();
+      start_time = millis();
       set_switch_state(true);
     }
     else if (data.equals("del"))
@@ -72,6 +77,9 @@ void loop1()
       if (int_data % 90 == 0)
       {
 
+        arrayList.push_back(int_data);
+      }
+      else if(int_data >= 1000){
         arrayList.push_back(int_data);
       }
       else
@@ -95,6 +103,8 @@ void loop()
       if (command_index > (arrayList.size() - 1))
       {
         stop();
+        unsigned long stop_time = millis();
+        send_data(String(stop_time - start_time));
         return;
       }
       else
@@ -108,6 +118,18 @@ void loop()
         {
           target_angle = arrayList[command_index];
           rotate(arrayList[command_index], angle, angular_velocity);
+        }
+
+        else if(arrayList[command_index] >= 1000){
+          int target_distance = arrayList[command_index] - 1000;
+          if(target_distance == 0){
+            target_distance = PRE_STOP_DIS;
+          }else{
+            target_distance = target_distance + PRE_STOP_DIS;
+          }
+          Serial.println(target_distance);
+
+          travel_with_ultrasonic(angle, angular_velocity, target_distance,get_distance());
         }
         else{
             travel(angle, angular_velocity, arrayList[command_index], get_rightcount());
@@ -128,8 +150,8 @@ void rotate(int target_angle, float angle, float angular_velocity)
     stop();
     command_index++;
     left_speed = 191;
-    right_speed = 192;
-    delay(500);
+    right_speed = 192; //add delay(500);
+    delay(200);
     reset_encoder();
     return;
   }
@@ -178,6 +200,58 @@ void travel(float angle, float angular_velocity, int target_count, int right_cou
   straight();
 
   if (target_count <= right_count)
+  {
+    stop();
+    command_index++;
+    left_speed = 191;
+    right_speed = 192;
+    delay(500);
+    reset_encoder();
+    return;
+  }
+  else
+  {
+    int delta_angle = round(target_angle - angle);
+    int target_angular_velocity;
+
+    if (delta_angle > 30)
+    {
+      target_angular_velocity = 60;
+    }
+    else if (delta_angle < -30)
+    {
+      target_angular_velocity = -60;
+    }
+    else
+    {
+      target_angular_velocity = 3 * delta_angle;
+    }
+    angular_velocity = -1 * angular_velocity; // gyro data and accelerometer data are opposite
+    if (round(target_angular_velocity - angular_velocity) == 0)
+    {
+      ;
+    }
+    else if (target_angular_velocity > angular_velocity)
+    {
+      left_speed++;
+    }
+    else
+    {
+      left_speed--;
+    }
+
+    left_speed = constrain(left_speed, 0, 210);
+    right_speed = 192;
+    enA_speed(left_speed);
+    enB_speed(right_speed);
+    delay(10);
+  }
+}
+
+void travel_with_ultrasonic(float angle, float angular_velocity, int target_distance, int current_distance)
+{
+  straight();
+  if (target_distance > current_distance)
   {
     stop();
     command_index++;

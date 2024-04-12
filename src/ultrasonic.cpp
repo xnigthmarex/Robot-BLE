@@ -1,7 +1,7 @@
 #include  <Arduino.h>
 
-const int TRIG = 13;
-const int ECHO = 12;
+const int TRIG = 12;
+const int ECHO = 13;
 long duration;
 float distance;
 
